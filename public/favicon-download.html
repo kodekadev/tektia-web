@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Favicon TEKTIA</title>
+  <style>
+    body { margin: 0; background: #f0f0f0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; font-family: Arial, sans-serif; }
+    canvas { border-radius: 50%; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+    button { background: #F97316; color: white; border: none; padding: 12px 28px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <canvas id="favicon" width="512" height="512"></canvas>
+  <button onclick="download()">⬇ Descargar favicon PNG</button>
+
+  <script>
+    const canvas = document.getElementById('favicon');
+    const ctx = canvas.getContext('2d');
+
+    // Fondo negro
+    ctx.fillStyle = '#111111';
+    ctx.beginPath();
+    ctx.arc(256, 256, 256, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Letra T
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '900 320px Arial Black, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('T', 240, 270);
+
+    // Punto naranja
+    ctx.fillStyle = '#F97316';
+    ctx.beginPath();
+    ctx.arc(360, 180, 48, 0, Math.PI * 2);
+    ctx.fill();
+
+    function download() {
+      const link = document.createElement('a');
+      link.download = 'favicon-tektia.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>

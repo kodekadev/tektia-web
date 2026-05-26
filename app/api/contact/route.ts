@@ -59,12 +59,13 @@ export async function POST(req: NextRequest) {
         to: email,
         subject: `Recibimos tu consulta, ${name} 👋`,
         html: `
-          <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:28px;background:#fff">
-            <div style="background:#F97316;height:4px;border-radius:2px;margin-bottom:24px"></div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
-              <span style="font-size:20px;font-weight:900;color:#111">TEKTIA</span>
-              <span style="width:6px;height:6px;border-radius:50%;background:#F97316;display:inline-block"></span>
+          <div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08)">
+            <div style="background:#111111;padding:24px 28px;display:flex;align-items:center;gap:8px">
+              <span style="font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.5px">TEKTIA</span>
+              <span style="width:7px;height:7px;border-radius:50%;background:#F97316;display:inline-block;margin-top:2px"></span>
             </div>
+            <div style="padding:28px">
+            <div style="background:#F97316;height:3px;border-radius:2px;margin-bottom:24px"></div>
             <h2 style="color:#111;margin:0 0 12px;font-size:22px">Hola ${name}, recibimos tu consulta ✅</h2>
             <p style="color:#4B5563;font-size:15px;line-height:1.6;margin:0 0 20px">
               Gracias por contactarnos. Revisamos tu solicitud sobre <strong>${service}</strong> y te responderemos en menos de <strong>24 horas hábiles</strong>.
@@ -79,6 +80,7 @@ export async function POST(req: NextRequest) {
             <p style="color:#9CA3AF;font-size:12px;margin:0">
               TEKTIA · Automatizamos empresas chilenas · <a href="mailto:contacto@tektia.cl" style="color:#F97316">contacto@tektia.cl</a>
             </p>
+            </div>
           </div>
         `,
       }),

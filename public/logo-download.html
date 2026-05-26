@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Logo TEKTIA</title>
+  <style>
+    body { margin: 0; background: #f0f0f0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; font-family: Arial, sans-serif; }
+    canvas { border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+    button { background: #F97316; color: white; border: none; padding: 12px 28px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
+    button:hover { background: #C2580B; }
+  </style>
+</head>
+<body>
+  <canvas id="logo" width="400" height="400"></canvas>
+  <button onclick="download()">⬇ Descargar PNG</button>
+
+  <script>
+    const canvas = document.getElementById('logo');
+    const ctx = canvas.getContext('2d');
+
+    // Fondo blanco
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, 400, 400);
+
+    // Texto TEKTIA
+    ctx.fillStyle = '#111111';
+    ctx.font = '900 76px Arial Black, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('TEKTIA', 190, 200);
+
+    // Medir el texto para poner el punto justo después
+    const textWidth = ctx.measureText('TEKTIA').width;
+    const dotX = 190 + textWidth / 2 + 14;
+    const dotY = 190;
+
+    // Punto naranja
+    ctx.fillStyle = '#F97316';
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    function download() {
+      const link = document.createElement('a');
+      link.download = 'logo-tektia.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>
