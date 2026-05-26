@@ -1,4 +1,5 @@
 ﻿import Link from "next/link";
+import Script from "next/script";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -11,8 +12,10 @@ const WHATSAPP = "https://wa.me/56928764172?text=Hola%2C%20acabo%20de%20enviar%2
 export default function GraciasPage() {
   return (
     <main className="min-h-screen bg-[#F9F8F6] flex items-center justify-center px-6">
-      {/* Google Ads conversion snippet — reemplaza con tu ID real */}
-      {/* <script dangerouslySetInnerHTML={{ __html: `gtag('event', 'conversion', {'send_to': 'AW-XXXXXXXXX/YYYYYYY'});` }} /> */}
+      {/* Google Ads — dispara conversión cuando alguien llega a /gracias */}
+      <Script id="ads-conversion" strategy="afterInteractive">
+        {`gtag('event', 'conversion', { 'send_to': 'AW-17907784712/zmKhCLGUi_gbEIi4jNtC' });`}
+      </Script>
 
       <div className="max-w-md w-full text-center flex flex-col items-center gap-6">
         {/* Icon */}

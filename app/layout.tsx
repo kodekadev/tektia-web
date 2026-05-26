@@ -1,5 +1,6 @@
 ﻿import type { Metadata } from "next";
 import { Inter, Syne } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const inter = Inter({
@@ -38,6 +39,21 @@ export default function RootLayout({
       lang="es"
       className={`${inter.variable} ${syne.variable} h-full`}
     >
+      <head>
+        {/* Google Ads — Global Site Tag */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-17907784712"
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-17907784712');
+          `}
+        </Script>
+      </head>
       <body className="min-h-full flex flex-col bg-[#F9F8F6] text-[#111111]">
         {children}
       </body>
