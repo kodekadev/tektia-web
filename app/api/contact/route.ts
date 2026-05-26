@@ -12,8 +12,8 @@ const bigquery = new BigQuery({
   },
 });
 
-const FROM = "TEKTIA <contacto@ko-deka.com>";
-const TO   = process.env.NOTIFY_EMAIL ?? "bastian.alfaro@gmail.com";
+const FROM = "TEKTIA <contacto@tektia.cl>";
+const TO   = process.env.NOTIFY_EMAIL ?? "nexonempresa7@gmail.com";
 const WA   = process.env.WHATSAPP_NUMBER ?? "56928764172";
 
 export async function POST(req: NextRequest) {
@@ -29,9 +29,9 @@ export async function POST(req: NextRequest) {
     );
     const waLink = `https://wa.me/${WA}?text=${waText}`;
 
-    // Ejecutar en paralelo: email + BigQuery
+    // Ejecutar en paralelo: emails + BigQuery
     await Promise.all([
-      // Email de notificación
+      // Email de notificación interna
       resend.emails.send({
         from: FROM,
         to: TO,
@@ -49,6 +49,36 @@ export async function POST(req: NextRequest) {
             <a href="${waLink}" style="display:inline-block;margin-top:24px;background:#25D366;color:#fff;font-weight:700;padding:12px 22px;border-radius:10px;text-decoration:none;font-size:14px">
               💬 Responder por WhatsApp
             </a>
+          </div>
+        `,
+      }),
+
+      // Email de confirmación al cliente
+      resend.emails.send({
+        from: FROM,
+        to: email,
+        subject: `Recibimos tu consulta, ${name} 👋`,
+        html: `
+          <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:28px;background:#fff">
+            <div style="background:#F97316;height:4px;border-radius:2px;margin-bottom:24px"></div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
+              <span style="font-size:20px;font-weight:900;color:#111">TEKTIA</span>
+              <span style="width:6px;height:6px;border-radius:50%;background:#F97316;display:inline-block"></span>
+            </div>
+            <h2 style="color:#111;margin:0 0 12px;font-size:22px">Hola ${name}, recibimos tu consulta ✅</h2>
+            <p style="color:#4B5563;font-size:15px;line-height:1.6;margin:0 0 20px">
+              Gracias por contactarnos. Revisamos tu solicitud sobre <strong>${service}</strong> y te responderemos en menos de <strong>24 horas hábiles</strong>.
+            </p>
+            <p style="color:#4B5563;font-size:15px;line-height:1.6;margin:0 0 24px">
+              Si necesitas una respuesta más rápida, escríbenos directamente por WhatsApp:
+            </p>
+            <a href="https://wa.me/${WA}" style="display:inline-block;background:#25D366;color:#fff;font-weight:700;padding:12px 22px;border-radius:10px;text-decoration:none;font-size:14px">
+              💬 Escribir por WhatsApp
+            </a>
+            <hr style="border:none;border-top:1px solid #F2F0EC;margin:28px 0">
+            <p style="color:#9CA3AF;font-size:12px;margin:0">
+              TEKTIA · Automatizamos empresas chilenas · <a href="mailto:contacto@tektia.cl" style="color:#F97316">contacto@tektia.cl</a>
+            </p>
           </div>
         `,
       }),
