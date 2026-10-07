@@ -1,0 +1,666 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Demo CRM Tektia</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: brandable sidebar + cream workspace, mirroring the real CRM; guided tour bar on top. Single light theme on purpose (matches the product). Accent + sidebar colors change live with the prospect's brand. */
+:root{
+  --side:#1b1f45; --teal:#2f9580;
+  --teal-d:color-mix(in srgb,var(--teal) 78%,#000); --teal-soft:color-mix(in srgb,var(--teal) 13%,#fff);
+  --side-2:color-mix(in srgb,var(--side) 82%,#fff);
+  --cream:#fffdf3; --paper:#fffef8; --line:#ece6d3; --ink:#1b1f45; --muted:#6b6a7d;
+  --amber:#b97c06; --amber-soft:#fff3d6; --red:#d33a4a; --green:#2f9e4a; --violet:#6a1fd1; --blue:#2f5fb3;
+  --wa-bg:#efe7dc; --wa-in:#ffffff; --wa-out:#d9fdd3; --wa-head:#0b6b5d;
+  --display:"Archivo",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--cream);color:var(--ink);font-family:var(--display);font-size:15px;line-height:1.45}
+button{font:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible,label:focus-within{outline:3px solid var(--teal);outline-offset:2px}
+
+.tour{background:var(--teal);color:#fff;padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;position:sticky;top:env(safe-area-inset-top,0px);z-index:20}
+.tour .tag{background:rgba(255,255,255,.2);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.tour .msg{flex:1;min-width:200px;font-weight:600}
+.tour .dots{display:flex;gap:6px}
+.tour .dots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.35)}
+.tour .dots i.on{background:#fff}
+.tour button{background:#fff;color:var(--teal-d);border:0;border-radius:8px;padding:7px 14px;font-weight:800}
+
+.app{display:grid;grid-template-columns:250px 1fr;min-height:calc(100vh - 52px)}
+.side{background:var(--side);color:#cfd1ea;padding:22px 14px;display:flex;flex-direction:column;gap:2px;transition:background .3s}
+.brand{display:flex;gap:10px;align-items:center;padding:0 8px 18px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:6px;min-width:0}
+.logo{width:38px;height:38px;border-radius:50%;background:#fff;color:var(--side);display:grid;place-items:center;font-weight:800;flex:none;overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:contain}
+.brand b{color:#fff;font-weight:800;letter-spacing:.02em;display:block;overflow-wrap:anywhere;line-height:1.15}
+.brand small{font-size:11px;letter-spacing:.14em;color:rgba(255,255,255,.55);font-weight:700}
+.sec{font-size:11px;letter-spacing:.14em;color:rgba(255,255,255,.5);font-weight:700;padding:14px 10px 6px}
+.nav{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;color:rgba(255,255,255,.88);text-align:left;padding:10px 12px;border-radius:10px;font-weight:700}
+.nav:hover{background:var(--side-2)}
+.nav.on{background:var(--teal);color:#fff}
+.nav .n{margin-left:auto;background:rgba(255,255,255,.22);border-radius:999px;font-size:12px;padding:1px 8px}
+.nav .new{margin-left:auto;background:#fff;color:var(--teal-d);border-radius:999px;font-size:10px;padding:1px 7px;letter-spacing:.06em}
+.nav svg{width:18px;height:18px;flex:none}
+.nav.appear{animation:appear .5s ease}
+@keyframes appear{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.side .user{margin-top:auto;display:flex;gap:10px;align-items:center;padding:12px 8px 0;border-top:1px solid rgba(255,255,255,.1)}
+.av{width:34px;height:34px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+
+.main{padding-block:22px 40px;padding-inline:clamp(16px,3vw,32px);min-width:0}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.top h1{margin:0;font-size:26px;font-weight:800;text-wrap:balance}
+.crumb{color:var(--muted);font-weight:600;font-size:14px}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:800;display:inline-flex;gap:8px;align-items:center;text-decoration:none}
+.btn.p{background:var(--teal);color:#fff}
+.btn.p:hover{background:var(--teal-d)}
+.btn.p[disabled]{opacity:.5;cursor:default}
+.btn.g{background:var(--paper);border:1px solid var(--line);color:var(--ink)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px;min-width:0}
+.card h3{margin:0 0 12px;font-size:17px;font-weight:800}
+.pulse{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--teal) 50%,transparent)}50%{box-shadow:0 0 0 9px transparent}}
+@media (prefers-reduced-motion:reduce){.pulse,.nav.appear{animation:none}.pulse{box-shadow:0 0 0 3px var(--teal)}}
+.pill{border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800;white-space:nowrap}
+.pill.wa{background:#dcf5e3;color:#16794a}
+.pill.ai{background:#efe5ff;color:var(--violet)}
+.pill.no{background:var(--amber-soft);color:var(--amber)}
+.pill.ok{background:#ebe9f3;color:var(--ink)}
+.pill.live{background:var(--teal-soft);color:var(--teal-d)}
+
+/* setup */
+.setup{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.field{display:grid;gap:6px;margin-bottom:14px}
+.field label,.flabel{font-size:13px;font-weight:700;color:var(--muted)}
+.field select,.field input[type=text]{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;font:inherit;color:var(--ink);width:100%}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.sw{width:46px;height:46px;border-radius:12px;border:3px solid transparent;padding:0;display:grid;place-items:center;overflow:hidden}
+.sw span{display:block;width:100%;height:100%;background:linear-gradient(135deg,var(--a) 0 50%,var(--s) 50% 100%)}
+.sw.on{border-color:var(--ink)}
+.upload{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.upload input{font-size:13px;max-width:100%}
+.mini{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:grid;grid-template-columns:110px 1fr;min-height:200px;background:var(--cream)}
+.mini .ms{background:var(--side);padding:12px 8px;display:grid;gap:6px;align-content:start}
+.mini .ms i{display:block;height:10px;border-radius:4px;background:rgba(255,255,255,.18)}
+.mini .ms i.on{background:var(--teal)}
+.mini .mb{padding:12px;display:grid;gap:8px;align-content:start}
+.mini .mb i{display:block;height:44px;border-radius:8px;background:var(--paper);border:1px solid var(--line)}
+.mini .mb .bar{height:12px;width:50%;background:var(--teal);border-radius:4px;border:0}
+
+/* modules */
+.mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.mod{display:flex;flex-direction:column;gap:8px}
+.mod .h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mod h4{margin:0;font-size:16px;font-weight:800}
+.mod p{margin:0;color:var(--muted);font-size:14px}
+.mod.off{opacity:.62}
+.tg{position:relative;width:46px;height:26px;flex:none}
+.tg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.tg span{position:absolute;inset:0;background:#d9d6e3;border-radius:999px;transition:.2s;pointer-events:none}
+.tg span::after{content:"";position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tg input:checked+span{background:var(--teal)}
+.tg input:checked+span::after{left:23px}
+.tg input:disabled+span{opacity:.6}
+.core{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.06em}
+
+/* dashboard */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+.kpi .l{font-size:12px;letter-spacing:.12em;font-weight:700;color:var(--muted);text-transform:uppercase}
+.kpi .v{font-size:30px;font-weight:800;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.kpi .s{font-weight:700;font-size:14px}
+.grid2{display:grid;grid-template-columns:1.7fr 1fr;gap:16px}
+.chart svg{width:100%;height:auto;display:block}
+.legend{display:grid;gap:8px;font-size:14px;color:var(--muted)}
+.legend span{display:flex;gap:8px;align-items:center}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* whatsapp */
+.wsp{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:20px;align-items:start}
+.phone{border-radius:22px;overflow:hidden;border:8px solid #22242c;background:var(--wa-bg);max-width:380px;width:100%}
+.phone .wh{background:var(--wa-head);color:#fff;padding:10px 12px;display:flex;gap:10px;align-items:center}
+.phone .wh .logo{width:34px;height:34px;font-size:12px}
+.phone .wh small{opacity:.8;display:block;font-size:12px}
+.chat{height:430px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px}
+.bub{max-width:82%;padding:7px 10px;border-radius:10px;font-size:14px;box-shadow:0 1px 1px rgba(0,0,0,.08);animation:pop .25s ease;color:#111}
+.bub.in{background:var(--wa-in);align-self:flex-start;border-top-left-radius:2px}
+.bub.out{background:var(--wa-out);align-self:flex-end;border-top-right-radius:2px}
+.bub .tm{display:block;text-align:right;font-size:10.5px;color:#667;margin-top:2px}
+.bub.sys{align-self:center;background:#fff8d6;font-size:12.5px;font-weight:700;color:#5c4a00;max-width:92%;text-align:center}
+.typing{align-self:flex-end;background:var(--wa-out);border-radius:10px;padding:9px 12px;display:flex;gap:4px}
+.typing i{width:6px;height:6px;border-radius:50%;background:#7a8;animation:blink 1s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{50%{opacity:.25}}
+@keyframes pop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.chatbar{background:#f0f0f0;padding:8px;display:flex;gap:8px}
+.chatbar div{flex:1;background:#fff;border-radius:999px;padding:8px 14px;color:#999;font-size:14px}
+.feats{display:grid;gap:12px}
+.feat{display:flex;gap:12px;align-items:flex-start}
+.feat b{display:block}
+.feat .ic{width:34px;height:34px;border-radius:10px;background:var(--teal-soft);color:var(--teal-d);display:grid;place-items:center;font-weight:800;flex:none}
+.done-log{display:grid;gap:8px;margin-top:6px}
+.done-log div{display:flex;gap:8px;align-items:center;font-size:14px;font-weight:700}
+.done-log div::before{content:"✓";width:20px;height:20px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-size:12px;flex:none}
+
+/* leads */
+.leads{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+.lead{border-left:4px solid var(--amber);display:flex;flex-direction:column;gap:10px}
+.lead.done{border-left-color:var(--teal)}
+.lead.fresh{animation:pop .5s ease;box-shadow:0 0 0 2px var(--teal)}
+.lead .h{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.lead h4{margin:0;font-size:17px;font-weight:800}
+.lead .rut{color:var(--muted);font-size:13px;font-family:var(--mono)}
+.lead .d{font-size:14px;color:#3b3a52}
+.lead .t{font-size:13px;color:var(--muted)}
+.lead .b{border-top:1px solid var(--line);padding-top:12px;display:flex;gap:8px}
+
+/* calendar */
+.cal{overflow-x:auto}
+.week{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:10px;min-width:680px}
+.day h4{margin:0 0 8px;font-size:13px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.day h4 b{display:block;font-size:22px;color:var(--ink);letter-spacing:0}
+.ev{border-radius:10px;padding:8px 10px;font-size:13px;margin-bottom:8px;background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--blue)}
+.ev b{display:block}
+.ev small{color:var(--muted)}
+.ev.mine{border-left-color:var(--teal);background:var(--teal-soft);animation:pop .5s ease}
+.ev.mp{border-left-color:var(--green)}
+.ev.mc{border-left-color:var(--red)}
+
+/* campaigns */
+.camps{display:grid;gap:14px}
+.camp{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(4,minmax(70px,.5fr));gap:12px;align-items:center}
+.camp .nm b{display:block;font-size:16px}
+.camp .nm small{color:var(--muted)}
+.stat b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.stat small{color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.meter{height:6px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:4px}
+.meter i{display:block;height:100%;background:var(--teal)}
+.tpl{background:var(--wa-bg);border-radius:12px;padding:14px;max-width:420px}
+
+/* tables */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:11px;letter-spacing:.1em;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line);text-transform:uppercase}
+td{padding:9px 6px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+td.code{font-family:var(--mono);color:var(--muted);font-size:12px}
+.add{background:var(--side);color:#fff;border:0;border-radius:6px;padding:4px 9px;font-size:12px;font-weight:700;white-space:nowrap}
+.add[disabled]{background:#c9c7d6;cursor:default}
+
+/* quote */
+.quote{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;align-items:start}
+.items{display:grid;gap:8px;margin:12px 0}
+.item{display:flex;justify-content:space-between;gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14px}
+.item button{border:0;background:none;color:var(--red);font-weight:800}
+.empty{color:var(--muted);font-size:14px;padding:10px;border:1px dashed var(--line);border-radius:10px}
+.tot{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+.check{display:flex;gap:8px;align-items:center;font-weight:700;font-size:14px;margin:12px 0}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.actions .btn{justify-content:center}
+.actions .full{grid-column:1/-1}
+.pdf{background:#fff;border:1px solid var(--line);border-radius:6px;padding:22px;font-size:12.5px;box-shadow:0 8px 30px rgba(27,31,69,.08);color:#2a2940}
+.pdf .ph{display:flex;justify-content:space-between;gap:10px;border-bottom:3px solid var(--teal);padding-bottom:12px;margin-bottom:14px;flex-wrap:wrap}
+.pdf .co{display:flex;gap:8px;align-items:center;font-weight:800;color:var(--teal-d);font-size:16px;min-width:0}
+.pdf .co .logo{background:var(--teal);color:#fff;width:32px;height:32px;font-size:12px}
+.pdf .co .logo.img{background:#fff;border:1px solid var(--line)}
+.stamp{background:var(--amber-soft);color:var(--amber);font-weight:800;font-size:11px;padding:2px 8px;border-radius:4px;letter-spacing:.08em}
+.stamp.ok{background:var(--teal-soft);color:var(--teal-d)}
+.pdf h5{margin:12px 0 6px;font-size:11px;letter-spacing:.12em;color:var(--teal-d)}
+.kv{display:grid;grid-template-columns:90px 1fr;gap:2px 10px;margin:0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;overflow-wrap:anywhere}
+.pdf table th{background:var(--teal);color:#fff;border:0}
+.pdf .sum{margin-left:auto;width:min(240px,100%);margin-top:10px}
+.pdf .sum div{display:flex;justify-content:space-between;padding:3px 0;font-variant-numeric:tabular-nums}
+.pdf .sum .big{border-top:2px solid var(--teal);font-weight:800;font-size:14px;padding-top:6px}
+.cond{background:var(--teal-soft);border-left:3px solid var(--teal);padding:10px 12px;margin-top:12px;border-radius:4px}
+.cond ul{margin:4px 0 0;padding-left:18px}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;z-index:50;max-width:calc(100% - 32px);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.overlay{position:fixed;inset:0;background:rgba(20,22,40,.55);display:grid;place-items:center;padding:16px;z-index:40}
+.modal{background:var(--paper);border-radius:16px;padding:28px;max-width:470px;width:100%;text-align:center}
+.modal .ok{width:56px;height:56px;border-radius:50%;background:var(--teal-soft);color:var(--teal);display:grid;place-items:center;margin:0 auto 12px;font-size:28px;font-weight:800}
+.modal h2{margin:0 0 8px;font-size:22px;text-wrap:balance}
+.modal p{color:var(--muted);margin:0 0 18px}
+.modal .row{display:grid;gap:10px}
+.modal .row .btn{justify-content:center}
+.modal small{display:block;margin-top:14px;color:var(--muted)}
+
+@media (max-width:1020px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2,.quote,.setup,.wsp{grid-template-columns:1fr}.camp{grid-template-columns:repeat(2,minmax(0,1fr))}.camp .nm{grid-column:1/-1}}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  .side{flex-direction:row;overflow-x:auto;padding:10px 12px;gap:6px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 52px);z-index:15}
+  .brand{padding:0 8px 0 0;border:0;margin:0}
+  .brand small,.sec,.side .user{display:none}
+  .brand b{white-space:nowrap}
+  .nav{width:auto;white-space:nowrap;padding:8px 12px}
+  .kpi .v{font-size:24px}
+  .chat{height:380px}
+}
+</style>
+
+<div class="tour" role="status">
+  <span class="tag">Demo guiada</span>
+  <span class="msg" id="tourMsg"></span>
+  <span class="dots" id="dots"></span>
+  <button id="tourBtn" type="button">Siguiente</button>
+</div>
+
+<div class="app">
+  <nav class="side" aria-label="Menú" id="side"></nav>
+  <main class="main">
+
+    <section id="v-brand" hidden>
+      <div class="top"><div><h1>Ponle tu marca</h1><div class="crumb">Así se vería el sistema con el nombre, logo y colores de tu empresa</div></div></div>
+      <div class="setup">
+        <div class="card">
+          <div class="field"><label for="coName">Nombre de tu empresa</label><input type="text" id="coName" maxlength="32" placeholder="Ej: Servitec Andes"></div>
+          <div class="field"><span class="flabel">Color de marca</span><div class="swatches" id="sw"></div></div>
+          <div class="field"><span class="flabel">Logo (opcional)</span>
+            <div class="upload"><input type="file" id="logoIn" accept="image/*" aria-label="Subir logo"><button class="btn g" type="button" id="logoClr">Quitar</button></div>
+          </div>
+          <button class="btn p" type="button" id="applyBrand">Aplicar y elegir módulos →</button>
+        </div>
+        <div class="card"><h3>Vista previa</h3>
+          <div class="mini"><div class="ms"><i style="height:22px;background:#fff;width:60%"></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
+            <div class="mb"><span class="bar"></span><i></i><i></i></div></div>
+          <p class="crumb" style="margin:12px 0 0">El logo y el color también salen en tus cotizaciones PDF y en el agente de WhatsApp.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="v-mods" hidden>
+      <div class="top"><div><h1>Módulos</h1><div class="crumb"><span class="coN"></span> / Sistema · activa solo lo que tu empresa necesita</div></div></div>
+      <div class="mods" id="modList"></div>
+    </section>
+
+    <section id="v-dash" hidden>
+      <div class="top"><div><h1>Dashboard</h1><div class="crumb"><span class="coN"></span> / Inicio</div></div>
+        <button class="btn p" type="button" data-go="leads">＋ Nueva cotización</button></div>
+      <div class="kpis">
+        <div class="card kpi"><div class="l">Leads pendientes</div><div class="v" id="kLeads">3</div><div class="s" style="color:var(--amber)">Sin gestionar</div></div>
+        <div class="card kpi"><div class="l">Clientes activos</div><div class="v">142</div><div class="s" style="color:var(--green)">En base de datos</div></div>
+        <div class="card kpi"><div class="l">Monto emitido</div><div class="v">$48,6M</div><div class="s" style="color:var(--blue)">64 cotizaciones</div></div>
+        <div class="card kpi"><div class="l">Tasa de cierre</div><div class="v">31%</div><div class="s" style="color:var(--green)">Últimos 90 días</div></div>
+      </div>
+      <div class="grid2">
+        <div class="card chart"><h3>Cotizaciones por mes</h3>
+          <svg viewBox="0 0 560 210" role="img" aria-label="Monto cotizado por mes, de mayo a octubre">
+            <g font-size="11" fill="#6b6a7d" font-family="Archivo,sans-serif">
+              <text x="40" y="24" text-anchor="end">$12M</text><text x="40" y="74" text-anchor="end">$8M</text><text x="40" y="124" text-anchor="end">$4M</text><text x="40" y="174" text-anchor="end">$0</text>
+              <text x="70" y="196" text-anchor="middle">May</text><text x="160" y="196" text-anchor="middle">Jun</text><text x="250" y="196" text-anchor="middle">Jul</text><text x="340" y="196" text-anchor="middle">Ago</text><text x="430" y="196" text-anchor="middle">Sep</text><text x="520" y="196" text-anchor="middle">Oct</text>
+            </g>
+            <g stroke="#ece6d3"><line x1="50" y1="20" x2="540" y2="20"/><line x1="50" y1="70" x2="540" y2="70"/><line x1="50" y1="120" x2="540" y2="120"/><line x1="50" y1="170" x2="540" y2="170"/></g>
+            <path d="M70 120 L160 107.5 L250 83 L340 70 L430 45 L520 57.5 L520 170 L70 170Z" style="fill:var(--teal-soft)"/>
+            <path d="M70 120 L160 107.5 L250 83 L340 70 L430 45 L520 57.5" fill="none" style="stroke:var(--teal)" stroke-width="3"/>
+            <g fill="#1b1f45"><circle cx="70" cy="120" r="4"/><circle cx="160" cy="107.5" r="4"/><circle cx="250" cy="83" r="4"/><circle cx="340" cy="70" r="4"/><circle cx="430" cy="45" r="4"/><circle cx="520" cy="57.5" r="6" style="fill:var(--teal)"/></g>
+          </svg>
+          <div class="crumb" style="font-size:13px">Datos de ejemplo. Octubre va en curso.</div>
+        </div>
+        <div class="card"><h3>Por estado</h3>
+          <svg viewBox="0 0 120 120" width="150" style="display:block;margin:4px auto 14px" role="img" aria-label="Cotizaciones por estado">
+            <circle cx="60" cy="60" r="44" fill="none" style="stroke:var(--teal)" stroke-width="20" stroke-dasharray="152 277" transform="rotate(-90 60 60)"/>
+            <circle cx="60" cy="60" r="44" fill="none" stroke="#6a1fd1" stroke-width="20" stroke-dasharray="86 277" stroke-dashoffset="-152" transform="rotate(-90 60 60)"/>
+            <circle cx="60" cy="60" r="44" fill="none" stroke="#2f9e4a" stroke-width="20" stroke-dasharray="25 277" stroke-dashoffset="-238" transform="rotate(-90 60 60)"/>
+            <circle cx="60" cy="60" r="44" fill="none" stroke="#b97c06" stroke-width="20" stroke-dasharray="14 277" stroke-dashoffset="-263" transform="rotate(-90 60 60)"/>
+          </svg>
+          <div class="legend"><span><i style="background:var(--teal)"></i>Emitida · 35</span><span><i style="background:#6a1fd1"></i>Aprobada · 20</span><span><i style="background:#2f9e4a"></i>Rechazada · 6</span><span><i style="background:#b97c06"></i>Pendiente · 3</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="v-wsp" hidden>
+      <div class="top"><div><h1>Agente WhatsApp IA</h1><div class="crumb"><span class="coN"></span> / Agente · responde 24/7 con tus servicios, precios y agenda</div></div>
+        <span class="pill live">● Activo</span></div>
+      <div class="wsp">
+        <div class="phone">
+          <div class="wh"><div class="logo" id="waLogo"></div><div><b class="coN"></b><small>Asistente virtual · en línea</small></div></div>
+          <div class="chat" id="chat" aria-live="polite"></div>
+          <div class="chatbar"><div>Mensaje</div></div>
+        </div>
+        <div class="card">
+          <h3>Qué hace el agente en esta conversación</h3>
+          <div class="feats">
+            <div class="feat"><span class="ic">1</span><div><b>Entiende lo que pide el cliente</b><span class="crumb">Identifica el equipo, el tipo de servicio y la comuna.</span></div></div>
+            <div class="feat"><span class="ic">2</span><div><b>Responde con tu información</b><span class="crumb">Usa tu catálogo, precios referenciales y condiciones.</span></div></div>
+            <div class="feat"><span class="ic">3</span><div><b>Agenda la visita</b><span class="crumb">Ofrece horarios libres del calendario y confirma.</span></div></div>
+            <div class="feat"><span class="ic">4</span><div><b>Deja todo cargado en el CRM</b><span class="crumb">Crea el lead con sus datos, listo para cotizar.</span></div></div>
+          </div>
+          <div class="done-log" id="log"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+            <button class="btn p" type="button" id="play">▶ Reproducir conversación</button>
+            <button class="btn g" type="button" data-go="leads" id="seeLead" hidden>Ver el lead creado →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="v-leads" hidden>
+      <div class="top"><div><h1>Leads</h1><div class="crumb"><span class="coN"></span> / Leads · llegan desde tu web, WhatsApp y el agente IA</div></div></div>
+      <div class="leads" id="leadList"></div>
+    </section>
+
+    <section id="v-cli" hidden>
+      <div class="top"><div><h1>Clientes</h1><div class="crumb"><span class="coN"></span> / Clientes</div></div></div>
+      <div class="card tw"><table><thead><tr><th>Empresa</th><th>RUT</th><th>Comuna</th><th>Equipos</th><th>Última mantención</th></tr></thead><tbody>
+        <tr><td>Clínica Los Aromos</td><td class="code">76.512.880-3</td><td>Ñuñoa</td><td>4</td><td>12 jun 2026</td></tr>
+        <tr><td>Centro Dental Sonrisa</td><td class="code">77.208.114-K</td><td>Providencia</td><td>6</td><td>03 ago 2026</td></tr>
+        <tr><td>Laboratorio BioSur</td><td class="code">76.934.551-2</td><td>Concepción</td><td>9</td><td>21 mar 2026</td></tr>
+        <tr><td>Hospital Veterinario Norte</td><td class="code">76.401.227-8</td><td>Huechuraba</td><td>3</td><td>30 sep 2026</td></tr>
+        <tr><td>Centro Médico Andes</td><td class="code">77.590.336-1</td><td>Las Condes</td><td>12</td><td>15 sep 2026</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="v-cat" hidden>
+      <div class="top"><div><h1>Productos y servicios</h1><div class="crumb"><span class="coN"></span> / Catálogo · lo usan las cotizaciones y el agente IA</div></div></div>
+      <div class="card tw"><table><thead><tr><th>Código</th><th>Descripción</th><th>Categoría</th><th style="text-align:right">Precio neto</th></tr></thead><tbody id="catFull"></tbody></table></div>
+    </section>
+
+    <section id="v-cal" hidden>
+      <div class="top"><div><h1>Calendario</h1><div class="crumb"><span class="coN"></span> / Semana del 12 al 16 de octubre</div></div></div>
+      <div class="card cal"><div class="week" id="week"></div></div>
+    </section>
+
+    <section id="v-camp" hidden>
+      <div class="top"><div><h1>Campañas</h1><div class="crumb"><span class="coN"></span> / Campañas · WhatsApp y correo a tu base de clientes</div></div>
+        <button class="btn p" type="button" id="newCamp">＋ Nueva campaña</button></div>
+      <div class="camps" id="camps"></div>
+      <div class="card" style="margin-top:16px"><h3>Mensaje de la campaña «Recordatorio mantención anual»</h3>
+        <div class="tpl"><div class="bub in" style="max-width:100%">Hola {{nombre}} 👋 Te escribimos de <b class="coN"></b>. Tu {{equipo}} cumple un año desde su última mantención preventiva. ¿Te agendamos una visita esta semana? Responde <b>SÍ</b> y te ofrecemos horarios.<span class="tm">09:00</span></div></div>
+        <p class="crumb" style="margin:10px 0 0">Las respuestas las toma el agente IA, que agenda y crea el lead solo.</p>
+      </div>
+    </section>
+
+    <section id="v-tasks" hidden>
+      <div class="top"><div><h1>Tareas</h1><div class="crumb"><span class="coN"></span> / Tareas del equipo</div></div></div>
+      <div class="card tw"><table><thead><tr><th>Tarea</th><th>Responsable</th><th>Vence</th><th>Estado</th></tr></thead><tbody>
+        <tr><td>Llamar a Laboratorio BioSur por cotización enviada</td><td>Carolina R.</td><td>Hoy</td><td><span class="pill no">Pendiente</span></td></tr>
+        <tr><td>Subir informe técnico autoclave Clínica Los Aromos</td><td>Jorge M.</td><td>Mañana</td><td><span class="pill no">Pendiente</span></td></tr>
+        <tr><td>Pedir repuesto sensor SpO2 a proveedor</td><td>Jorge M.</td><td>09 oct</td><td><span class="pill ok">Hecha</span></td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="v-docs" hidden>
+      <div class="top"><div><h1>Protocolos y documentación</h1><div class="crumb"><span class="coN"></span> / Documentación técnica por cliente y equipo</div></div></div>
+      <div class="card tw"><table><thead><tr><th>Documento</th><th>Cliente</th><th>Equipo</th><th>Fecha</th></tr></thead><tbody>
+        <tr><td>Protocolo mantención preventiva</td><td>Centro Médico Andes</td><td>Autoclave 23 L</td><td>15 sep 2026</td></tr>
+        <tr><td>Informe técnico de reparación</td><td>Centro Dental Sonrisa</td><td>Sillón dental</td><td>03 ago 2026</td></tr>
+        <tr><td>Certificado de calibración</td><td>Laboratorio BioSur</td><td>Balanza clínica</td><td>21 mar 2026</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="v-quote" hidden>
+      <div class="top"><div><h1>Nueva cotización</h1><div class="crumb"><span class="coN"></span> / Cotizaciones</div></div></div>
+      <div class="quote">
+        <div class="card">
+          <div class="field"><label for="cli">Cliente</label><select id="cli"></select></div>
+          <div class="field"><label for="pay">Forma de pago</label><select id="pay"><option>50% inicio · 50% entrega</option><option>Contado contra entrega</option><option>30 días factura</option></select></div>
+          <h3 style="margin-top:6px">Agregar ítems del catálogo</h3>
+          <div class="tw"><table><thead><tr><th>Código</th><th>Descripción</th><th style="text-align:right">Precio</th><th></th></tr></thead><tbody id="cat"></tbody></table></div>
+          <div class="items" id="items"></div>
+          <div class="tot" id="tot"></div>
+          <label class="check"><input type="checkbox" id="auto" checked> Enviar correo automáticamente al cliente al emitir</label>
+          <div class="actions">
+            <button class="btn g" type="button" id="clear">Limpiar</button>
+            <button class="btn g" type="button" id="seePdf">Ver PDF</button>
+            <button class="btn p full" type="button" id="emit">Emitir cotización</button>
+          </div>
+        </div>
+        <div class="pdf" id="pdf" aria-label="Vista previa del PDF"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<div class="overlay" id="done" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="doneT">
+    <div class="ok">✓</div>
+    <h2 id="doneT">Del WhatsApp a la cotización, sin tocar un Excel</h2>
+    <p id="doneP"></p>
+    <div class="row">
+      <a class="btn p" href="https://www.tektia.cl/lp/crm-servicios" target="_blank" rel="noopener">Quiero este sistema para mi empresa</a>
+      <a class="btn g" href="https://wa.me/56928764172?text=Hola%2C%20vi%20la%20demo%20del%20CRM%20y%20quiero%20saber%20m%C3%A1s" target="_blank" rel="noopener">Hablar por WhatsApp</a>
+      <button class="btn g" type="button" id="keep">Seguir explorando la demo</button>
+      <button class="btn g" type="button" id="again">Recorrer la demo desde el inicio</button>
+    </div>
+    <small>Con tu marca y tus módulos, listo en menos de 2 semanas · WhatsApp +56 9 2876 4172</small>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const clp=n=>"$"+Math.round(n).toLocaleString("es-CL");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ICON={
+ dash:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+ leads:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+ cli:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5h6v2M12 11v5M9.5 13.5h5"/>',
+ cat:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>',
+ tasks:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12l3 3 5-6"/>',
+ quote:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+ cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+ docs:'<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
+ wsp:'<path d="M4 20l1.5-4A8 8 0 1 1 9 19.5z"/><path d="M9 10c.5 2 2 3.5 4 4l1.2-1.2 2 .8"/>',
+ camp:'<path d="M3 11v2l13 5V6L3 11z"/><path d="M16 9a3 3 0 0 1 0 6M7 14l1.5 5h3"/>',
+ mods:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/>',
+ brand:'<circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="15.5" cy="10" r="1.3"/><path d="M12 21c-2 0-2-2-1-3s0-3-2-3"/>'};
+const MODS=[
+ {id:"dash",n:"Dashboard",sec:"PRINCIPAL",core:1,d:"Leads, montos y tasa de cierre en un vistazo."},
+ {id:"leads",n:"Leads",sec:"GESTIÓN",core:1,d:"Todos los contactos nuevos en un solo lugar, con su estado."},
+ {id:"cli",n:"Clientes",sec:"GESTIÓN",core:1,d:"Ficha de cada cliente con sus equipos e historial."},
+ {id:"cat",n:"Productos / Servicios",sec:"GESTIÓN",on:1,d:"Tu catálogo con códigos y precios, usado al cotizar."},
+ {id:"tasks",n:"Tareas",sec:"GESTIÓN",on:0,d:"Pendientes del equipo con responsable y fecha."},
+ {id:"quote",n:"Cotizaciones",sec:"OPERACIONES",core:1,d:"Cotizaciones en PDF con tu logo, listas en segundos."},
+ {id:"cal",n:"Calendario",sec:"OPERACIONES",on:1,d:"Visitas y mantenciones agendadas del equipo técnico."},
+ {id:"docs",n:"Protocolos y documentación",sec:"OPERACIONES",on:0,d:"Informes técnicos y protocolos por cliente y equipo."},
+ {id:"wsp",n:"Agente WhatsApp IA",sec:"CRECIMIENTO",on:1,d:"Responde 24/7, agenda visitas y crea leads solo."},
+ {id:"camp",n:"Campañas",sec:"CRECIMIENTO",on:1,d:"Mensajes masivos por WhatsApp y correo a tu base."}];
+const SYS=[{id:"mods",n:"Módulos"},{id:"brand",n:"Mi marca"}];
+const PAL=[["#2f9580","#1b1f45","Verde"],["#2563c9","#14213d","Azul"],["#b0304a","#2a1620","Burdeo"],["#d0621b","#22262e","Naranjo"],["#6d3fc9","#1e1838","Morado"],["#178a9e","#13272c","Petróleo"]];
+const CAT=[
+ {c:"MP-001",d:"Mantención preventiva autoclave",k:"Mantención preventiva",p:95000},
+ {c:"MC-010",d:"Diagnóstico monitor multiparámetro",k:"Mantención correctiva",p:65000},
+ {c:"RP-033",d:"Cambio de sensor SpO2",k:"Repuestos",p:120000},
+ {c:"CAL-020",d:"Calibración balanza clínica",k:"Calibración",p:45000},
+ {c:"MP-014",d:"Mantención sillón dental",k:"Mantención preventiva",p:80000},
+ {c:"VT-001",d:"Visita técnica RM",k:"Visitas",p:30000}];
+const BASE_LEADS=[
+ {id:1,n:"Clínica Los Aromos",rut:"76.512.880-3",ct:"Daniela Fuentes",tel:"+56 9 6123 4471",mail:"compras@clinicalosaromos.cl",dir:"Av. Grecia 2240, Ñuñoa",d:"MP · Mantención preventiva de 2 autoclaves antes de auditoría sanitaria.",t:"Hace 2 horas",src:"WhatsApp",pre:["MP-001","VT-001"]},
+ {id:2,n:"Centro Dental Sonrisa",rut:"77.208.114-K",ct:"Marcelo Pinto",tel:"+56 9 7745 0912",mail:"admin@dentalsonrisa.cl",dir:"Los Leones 1180, Providencia",d:"MC · Sillón dental no sube ni baja desde ayer.",t:"Hace 5 horas",src:"Web",pre:["MP-014","VT-001"]},
+ {id:3,n:"Laboratorio BioSur",rut:"76.934.551-2",ct:"Paula Henríquez",tel:"+56 9 8832 1650",mail:"operaciones@biosur.cl",dir:"O'Higgins 455, Concepción",d:"Calibración anual de 3 balanzas clínicas.",t:"Hace 1 día",src:"Web",pre:["CAL-020"]}];
+const AI_LEAD={id:9,n:"Clínica San Rafael",rut:"76.880.412-5",ct:"Andrea Muñoz",tel:"+56 9 5512 7781",mail:"andrea.munoz@clinicasanrafael.cl",dir:"Av. Vicuña Mackenna 3020, Macul",d:"MP · Mantención preventiva autoclave 23 L. Visita agendada: jueves 15 oct, 10:00.",t:"Hace 1 minuto",src:"Agente IA",pre:["MP-001","VT-001"],ai:1};
+const EVENTS=[
+ {d:0,h:"09:00",t:"Mantención preventiva",c:"Centro Médico Andes",k:"mp"},
+ {d:0,h:"15:00",t:"Calibración balanzas",c:"Laboratorio BioSur",k:""},
+ {d:1,h:"11:00",t:"Reparación sillón dental",c:"Centro Dental Sonrisa",k:"mc"},
+ {d:2,h:"10:00",t:"Mantención autoclaves",c:"Clínica Los Aromos",k:"mp"},
+ {d:3,h:"16:00",t:"Diagnóstico monitor",c:"Hospital Veterinario Norte",k:"mc"},
+ {d:4,h:"09:30",t:"Entrega de informe técnico",c:"Centro Médico Andes",k:""}];
+const DAYS=[["Lun",12],["Mar",13],["Mié",14],["Jue",15],["Vie",16]];
+const CAMPS=[
+ {n:"Recordatorio mantención anual",ch:"WhatsApp",st:"live",env:312,lei:268,res:41,ag:9},
+ {n:"Calibraciones de octubre",ch:"Correo",st:"live",env:540,lei:221,res:18,ag:4},
+ {n:"Reactivación clientes 2025",ch:"WhatsApp",st:"ok",env:186,lei:150,res:27,ag:6}];
+
+let S={co:"Servitec Andes",pal:0,logo:null,on:Object.fromEntries(MODS.map(m=>[m.id,m.core||m.on?1:0])),view:"brand",step:0};
+let LEADS=BASE_LEADS.map(l=>({...l,s:"no"})), lead=LEADS[0], items=[], emitted=0, played=0, playing=0, extraCamp=0;
+
+const TOUR=[
+ {v:"brand",m:"Escribe el nombre de tu empresa, elige un color y, si quieres, sube tu logo.",b:"Aplicar"},
+ {v:"mods",m:"Activa o desactiva módulos y mira cómo cambia el menú. Tú eliges qué necesita tu empresa.",b:"Siguiente"},
+ {v:"wsp",m:"Un cliente escribe por WhatsApp. Mira cómo responde el agente con IA.",b:"Reproducir",need:"wsp"},
+ {v:"leads",m:"Los leads llegan con sus datos listos. Pulsa «Cotizar» en el primero.",b:"Cotizar"},
+ {v:"quote",m:"Agrega servicios del catálogo. El total con IVA y el PDF se arman solos.",b:"Siguiente"},
+ {v:"quote",m:"Revisa el PDF y pulsa «Emitir cotización».",b:"Emitir"}];
+
+function initials(s){return (s.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("")||"TU").toUpperCase()}
+function logoHTML(){return S.logo?`<img src="${S.logo}" alt="">`:esc(initials(S.co))}
+function applyBrand(){
+  const [a,s]=PAL[S.pal]; document.documentElement.style.setProperty("--teal",a); document.documentElement.style.setProperty("--side",s);
+  $$(".coN").forEach(e=>e.textContent=S.co);
+  $("#waLogo").innerHTML=logoHTML();
+  $$(".sw").forEach((b,i)=>{b.classList.toggle("on",i===S.pal);b.setAttribute("aria-pressed",i===S.pal)});
+  renderSide(); renderQuote();
+}
+function renderSide(){
+  const secs={}; MODS.filter(m=>S.on[m.id]).forEach(m=>(secs[m.sec]=secs[m.sec]||[]).push(m));
+  const pend=LEADS.filter(l=>l.s==="no").length;
+  let h=`<div class="brand"><div class="logo">${logoHTML()}</div><div style="min-width:0"><b>${esc(S.co.toUpperCase())}</b><small>SISTEMA CRM</small></div></div>`;
+  for(const [sec,ms] of Object.entries(secs)){
+    h+=`<div class="sec">${sec}</div>`+ms.map(m=>`<button class="nav ${S.view===m.id?"on":""} ${justOn===m.id?"appear":""}" data-v="${m.id}" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[m.id]}</svg>${m.n}${m.id==="leads"?`<span class="n">${pend}</span>`:""}${m.id==="wsp"?`<span class="new">IA</span>`:""}</button>`).join("");
+  }
+  h+=`<div class="sec">SISTEMA</div>`+SYS.map(m=>`<button class="nav ${S.view===m.id?"on":""}" data-v="${m.id}" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[m.id]}</svg>${m.n}</button>`).join("");
+  h+=`<div class="user"><div class="av">CR</div><div><b style="color:#fff">Carolina R.</b><br><small>admin</small></div></div>`;
+  $("#side").innerHTML=h; justOn=null;
+  $("#kLeads").textContent=pend;
+}
+let justOn=null;
+function renderMods(){
+  $("#modList").innerHTML=MODS.map(m=>`<div class="card mod ${S.on[m.id]?"":"off"}"><div class="h"><h4>${m.n}</h4>
+   ${m.core?`<span class="core">INCLUIDO</span>`:`<label class="tg"><input type="checkbox" data-mod="${m.id}" ${S.on[m.id]?"checked":""} aria-label="Activar ${m.n}"><span></span></label>`}</div><p>${m.d}</p></div>`).join("");
+}
+function show(v){
+  if(MODS.find(m=>m.id===v)&&!S.on[v]) v="dash";
+  S.view=v; $$("main>section").forEach(s=>s.hidden=s.id!=="v-"+v); renderSide(); window.scrollTo({top:0});
+}
+function tourSteps(){return TOUR.map((t,i)=>({...t,i})).filter(t=>!t.need||S.on[t.need])}
+function setStep(i,stay){
+  S.step=i; const steps=tourSteps(), t=TOUR[i], pos=steps.findIndex(x=>x.i===i);
+  $("#tourMsg").textContent=`Paso ${pos+1} de ${steps.length} · ${t.m}`;
+  $("#tourBtn").textContent= i===2&&played? "Ver el lead" : t.b;
+  $("#dots").innerHTML=steps.map((x,k)=>`<i class="${k<=pos?"on":""}"></i>`).join("");
+  if(!stay) show(t.v); hint();
+}
+function next(){const steps=tourSteps(); const k=steps.findIndex(x=>x.i===S.step); return steps[k+1]?steps[k+1].i:null}
+function hint(){
+  $$(".pulse").forEach(e=>e.classList.remove("pulse"));
+  const el= S.step===2&&!played? $("#play") : S.step===3? document.querySelector("[data-cot]") : S.step===5? $("#emit") : S.step===0? $("#applyBrand"):null;
+  el&&el.classList.add("pulse");
+}
+function toast(m){const t=$("#toast"); t.textContent=m; t.hidden=false; clearTimeout(t._h); t._h=setTimeout(()=>t.hidden=true,3200)}
+
+/* WhatsApp simulation */
+const CONV=[
+ ["in","Hola, buenas tardes. Necesito mantención para un autoclave de 23 litros, estamos en Macul","16:42"],
+ ["out",()=>`¡Hola! Soy el asistente de ${S.co} 😊 Con gusto te ayudo. ¿La mantención es preventiva o el equipo presenta alguna falla?`,"16:42"],
+ ["in","Preventiva, nos toca auditoría sanitaria a fin de mes","16:43"],
+ ["out","Perfecto. La mantención preventiva de autoclave tiene un valor referencial de $95.000 + IVA, más $30.000 de visita técnica en la RM. Incluye informe técnico para tu auditoría.","16:43"],
+ ["out","Tengo disponibilidad el jueves 15 a las 10:00 o el viernes 16 a las 15:00. ¿Cuál te acomoda?","16:43"],
+ ["in","El jueves a las 10 está perfecto","16:44"],
+ ["out","Listo ✅ Para dejarlo agendado, ¿me confirmas el nombre de la clínica, tu nombre y un correo para enviarte la cotización?","16:44"],
+ ["in","Clínica San Rafael, Andrea Muñoz, andrea.munoz@clinicasanrafael.cl","16:45"],
+ ["out","¡Gracias, Andrea! Quedó agendada la visita para el jueves 15 de octubre a las 10:00 en Clínica San Rafael. En unos minutos te llega la cotización formal a tu correo.","16:45"],
+ ["sys","Lead creado en el CRM · Visita agendada en el calendario",""]];
+const sleep=ms=>new Promise(r=>setTimeout(r,matchMedia("(prefers-reduced-motion: reduce)").matches?Math.min(ms,150):ms));
+function bubble(r,txt,tm){const d=document.createElement("div");d.className="bub "+r;d.innerHTML=esc(txt)+(tm?`<span class="tm">${tm}${r==="out"?" ✓✓":""}</span>`:"");$("#chat").appendChild(d);$("#chat").scrollTop=1e6}
+async function play(){
+  if(playing) return; playing=1; $("#play").disabled=true; $("#chat").innerHTML=""; $("#log").innerHTML=""; $("#seeLead").hidden=true; hint();
+  for(const [r,txt,tm] of CONV){
+    if(r==="out"){const ty=document.createElement("div");ty.className="typing";ty.innerHTML="<i></i><i></i><i></i>";$("#chat").appendChild(ty);$("#chat").scrollTop=1e6;await sleep(1100);ty.remove()}
+    else await sleep(r==="sys"?500:900);
+    bubble(r,typeof txt==="function"?txt():txt,tm);
+  }
+  ["Lead creado: Clínica San Rafael","Visita agendada: jueves 15, 10:00","Servicios sugeridos para cotizar"].forEach(t=>{const d=document.createElement("div");d.textContent=t;$("#log").appendChild(d)});
+  if(!LEADS.find(l=>l.id===9)){LEADS.unshift({...AI_LEAD,s:"no"});}
+  lead=LEADS[0]; played=1; playing=0; $("#play").disabled=false; $("#play").textContent="↻ Repetir conversación"; $("#seeLead").hidden=false;
+  renderLeads(); renderCal(); renderSide(); toast("El agente creó un lead nuevo y agendó la visita");
+  if(S.step===2) setStep(2); hint();
+}
+
+function renderLeads(){
+  $("#leadList").innerHTML=LEADS.map(l=>`
+   <article class="card lead ${l.s==="ok"?"done":""} ${l.ai&&l.s==="no"?"fresh":""}">
+    <div class="h"><div><h4>${l.n}</h4><div class="rut">${l.rut}</div></div>
+     <div style="display:grid;gap:6px;justify-items:end"><span class="pill ${l.ai?"ai":"wa"}">${l.src}</span><span class="pill ${l.s==="ok"?"ok":"no"}">${l.s==="ok"?"Cotizado":"No cotizado"}</span></div></div>
+    <div class="d">${l.d}</div>
+    <div class="t">${l.ct} · ${l.tel}<br>${l.t}</div>
+    <div class="b"><button class="btn p" type="button" data-cot="${l.id}">Cotizar</button></div>
+   </article>`).join("");
+  renderSide(); hint();
+}
+function renderCal(){
+  const ev=[...EVENTS]; if(played) ev.push({d:3,h:"10:00",t:"Mantención autoclave",c:"Clínica San Rafael · agendado por el agente IA",k:"mine"});
+  $("#week").innerHTML=DAYS.map(([n,num],i)=>`<div class="day"><h4>${n}<b>${num}</b></h4>${ev.filter(e=>e.d===i).sort((a,b)=>a.h.localeCompare(b.h)).map(e=>`<div class="ev ${e.k}"><small>${e.h}</small><b>${e.t}</b><small>${e.c}</small></div>`).join("")||'<div class="crumb" style="font-size:13px">Sin visitas</div>'}</div>`).join("");
+}
+function renderCamps(){
+  const list=[...CAMPS]; if(extraCamp) list.unshift({n:"Nueva campaña (borrador)",ch:"WhatsApp",st:"draft",env:0,lei:0,res:0,ag:0});
+  $("#camps").innerHTML=list.map(c=>`<div class="card camp"><div class="nm"><b>${c.n}</b><small>${c.ch} · </small><span class="pill ${c.st==="live"?"live":c.st==="draft"?"no":"ok"}">${c.st==="live"?"En curso":c.st==="draft"?"Borrador":"Terminada"}</span></div>
+   <div class="stat"><small>Enviados</small><b>${c.env}</b></div>
+   <div class="stat"><small>Leídos</small><b>${c.lei}</b><div class="meter"><i style="width:${c.env?c.lei/c.env*100:0}%"></i></div></div>
+   <div class="stat"><small>Respuestas</small><b>${c.res}</b></div>
+   <div class="stat"><small>Agendas</small><b>${c.ag}</b></div></div>`).join("");
+}
+function openQuote(id){
+  lead=LEADS.find(l=>l.id===id); items=lead.pre.map(c=>CAT.find(x=>x.c===c));
+  renderQuote(); setStep(4);
+}
+function renderQuote(){
+  $("#cli").innerHTML=LEADS.map(l=>`<option value="${l.id}" ${l.id===lead.id?"selected":""}>${l.n}</option>`).join("");
+  $("#cat").innerHTML=CAT.map(x=>{const has=items.includes(x);return `<tr><td class="code">${x.c}</td><td>${x.d}</td><td style="text-align:right">${clp(x.p)}</td><td style="text-align:right"><button class="add" type="button" data-add="${x.c}" ${has?"disabled":""}>${has?"Agregado":"+ Agregar"}</button></td></tr>`}).join("");
+  $("#items").innerHTML=items.length?items.map(x=>`<div class="item"><span>${x.d}</span><span><b>${clp(x.p)}</b> <button type="button" aria-label="Quitar ${x.d}" data-rm="${x.c}">✕</button></span></div>`).join(""):`<div class="empty">Agrega al menos un servicio del catálogo.</div>`;
+  const net=items.reduce((a,x)=>a+x.p,0), iva=net*.19;
+  $("#tot").textContent=`Neto ${clp(net)} · IVA ${clp(iva)} · Total ${clp(net+iva)} CLP`;
+  const num=emitted?`N° ${String(1064+emitted).padStart(5,"0")}`:"Sin número";
+  $("#pdf").innerHTML=`
+   <div class="ph"><div class="co"><div class="logo ${S.logo?"img":""}">${logoHTML()}</div><span style="overflow-wrap:anywhere">${esc(S.co)}</span></div><div style="text-align:right"><span class="stamp ${lead.s==="ok"?"ok":""}">${lead.s==="ok"?"EMITIDA":"BORRADOR"}</span><div style="font-weight:800;margin-top:4px">${num}</div><div style="color:var(--muted)">Válida por 15 días</div></div></div>
+   <h5>CLIENTE</h5>
+   <dl class="kv"><dt>Empresa</dt><dd>${lead.n}</dd><dt>RUT</dt><dd>${lead.rut}</dd><dt>Contacto</dt><dd>${lead.ct}</dd><dt>Correo</dt><dd>${lead.mail}</dd><dt>Dirección</dt><dd>${lead.dir}</dd></dl>
+   <h5>DETALLE DEL SERVICIO</h5>
+   <div class="tw"><table><thead><tr><th>#</th><th>Descripción</th><th>Cant.</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>
+   ${items.map((x,i)=>`<tr><td>${i+1}</td><td>${x.d}</td><td>1</td><td style="text-align:right">${clp(x.p)}</td></tr>`).join("")||'<tr><td colspan="4" style="color:var(--muted)">Sin ítems</td></tr>'}
+   </tbody></table></div>
+   <div class="sum"><div><span>Neto</span><span>${clp(net)}</span></div><div><span>IVA (19%)</span><span>${clp(iva)}</span></div><div class="big"><span>Total</span><span>${clp(net+iva)} CLP</span></div></div>
+   <div class="cond"><b>Condiciones comerciales</b><br>Forma de pago: ${$("#pay").value}<ul><li>Valores en pesos chilenos</li><li>Informe técnico por cada equipo intervenido</li><li>Garantía de 90 días sobre repuestos instalados</li></ul></div>`;
+  $("#emit").disabled=!items.length;
+}
+function emit(){
+  if(!items.length) return;
+  emitted++; lead.s="ok"; renderLeads(); renderQuote();
+  const total=items.reduce((a,x)=>a+x.p,0)*1.19;
+  $("#doneP").textContent=($("#auto").checked?`La cotización por ${clp(total)} se envió a ${lead.mail}`:`La cotización por ${clp(total)} quedó lista para enviar`)+`, con el logo de ${S.co}. El lead pasó a «Cotizado».`;
+  $("#done").hidden=false; $("#keep").focus();
+}
+
+document.addEventListener("click",e=>{
+  const sw=e.target.closest(".sw"); if(sw){S.pal=+sw.dataset.i; applyBrand(); return;}
+  const t=e.target.closest("button[data-v],[data-go],button[data-cot],button[data-add],button[data-rm]"); if(!t) return;
+  if(t.dataset.v){ show(t.dataset.v); if(t.dataset.v==="quote"&&!items.length){items=lead.pre.map(c=>CAT.find(x=>x.c===c));renderQuote();} hint(); return;}
+  if(t.dataset.go==="leads"){ if(S.step<3) setStep(3); else show("leads"); return;}
+  if(t.dataset.cot){openQuote(+t.dataset.cot);return;}
+  if(t.dataset.add){items.push(CAT.find(x=>x.c===t.dataset.add)); renderQuote(); if(S.step===4) setStep(5); return;}
+  if(t.dataset.rm){items=items.filter(x=>x.c!==t.dataset.rm); renderQuote(); return;}
+});
+document.addEventListener("change",e=>{
+  const m=e.target.dataset&&e.target.dataset.mod; if(!m) return;
+  S.on[m]=e.target.checked?1:0; if(S.on[m]) justOn=m;
+  renderMods(); renderSide(); toast(`${MODS.find(x=>x.id===m).n} ${S.on[m]?"activado":"desactivado"}`);
+  setStep(S.step,true);
+});
+$("#tourBtn").onclick=()=>{
+  const s=S.step;
+  if(s===0) return $("#applyBrand").click();
+  if(s===2&&!played) return play();
+  if(s===3) return openQuote(lead.id);
+  if(s===5) return emit();
+  const n=next(); if(n!==null) setStep(n);
+};
+$("#applyBrand").onclick=()=>{const v=$("#coName").value.trim(); if(v) S.co=v; applyBrand(); setStep(1);};
+$("#coName").oninput=e=>{S.co=e.target.value.trim()||"Servitec Andes"; applyBrand();};
+$("#logoIn").onchange=e=>{const f=e.target.files[0]; if(!f) return; if(f.size>3e6){toast("El logo debe pesar menos de 3 MB");return;} const r=new FileReader(); r.onload=()=>{S.logo=r.result; applyBrand();}; r.readAsDataURL(f);};
+$("#logoClr").onclick=()=>{S.logo=null; $("#logoIn").value=""; applyBrand();};
+$("#play").onclick=play;
+$("#newCamp").onclick=()=>{extraCamp=1; renderCamps(); toast("Campaña creada como borrador");};
+$("#cli").onchange=e=>{lead=LEADS.find(l=>l.id===+e.target.value); items=lead.pre.map(c=>CAT.find(x=>x.c===c)); renderQuote();};
+$("#pay").onchange=renderQuote;
+$("#clear").onclick=()=>{items=[];renderQuote();};
+$("#seePdf").onclick=()=>{$("#pdf").scrollIntoView({behavior:"smooth",block:"start"}); if(S.step===4) setStep(5);};
+$("#emit").onclick=emit;
+$("#keep").onclick=()=>{$("#done").hidden=true; show("dash");};
+$("#again").onclick=()=>{$("#done").hidden=true; LEADS=BASE_LEADS.map(l=>({...l,s:"no"})); lead=LEADS[0]; items=[]; emitted=0; played=0; $("#chat").innerHTML=""; $("#log").innerHTML=""; $("#seeLead").hidden=true; $("#play").textContent="▶ Reproducir conversación"; renderLeads(); renderCal(); renderQuote(); setStep(0);};
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#done").hidden){$("#done").hidden=true}});
+
+$("#sw").innerHTML=PAL.map(([a,s,n],i)=>`<button class="sw" type="button" data-i="${i}" style="--a:${a};--s:${s}" aria-label="Color ${n}" title="${n}"><span></span></button>`).join("");
+$("#catFull").innerHTML=CAT.map(x=>`<tr><td class="code">${x.c}</td><td>${x.d}</td><td>${x.k}</td><td style="text-align:right">${clp(x.p)}</td></tr>`).join("");
+bubble("sys","Pulsa «Reproducir conversación» para ver al agente en acción","");
+renderMods(); renderLeads(); renderCal(); renderCamps(); applyBrand(); setStep(0);
+</script>
+
+</body></html>
