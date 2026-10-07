@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, Users, ClipboardList, Wrench, History,
-  FileText, CheckCircle2, Phone, ChevronDown, ArrowRight, Zap
+  FileText, CheckCircle2, Phone, ChevronDown, ArrowRight, Zap, Play
 } from "lucide-react";
 
 const features = [
@@ -217,6 +217,25 @@ export default function LandingCRM() {
               <p className="text-center text-xs text-[#9CA3AF]">Sin spam. Te contactamos para coordinar la demo.</p>
             </form>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Video demo */}
+      <section id="video-demo" className="py-16 px-6 bg-white border-t border-[#E8E5E0]">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-[#FEF3E8] text-[#C2580B] text-xs font-bold px-3 py-1.5 rounded-full w-fit border border-[#F97316]/20 mb-5 mx-auto">
+            <Play size={12} />
+            40 segundos
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-black text-[#111111] mb-4" style={{ fontFamily: "var(--font-syne)" }}>
+            Así se ve funcionando
+          </h2>
+          <p className="text-[#4B5563] text-lg mb-10 max-w-xl mx-auto">
+            Un recorrido rápido por leads, catálogo, cotizaciones en PDF, protocolos de mantención y el dashboard en tiempo real.
+          </p>
+          <div className="rounded-2xl overflow-hidden border border-[#E8E5E0] shadow-xl bg-black">
+            <video src="/tektia-demo.mp4" controls preload="metadata" className="w-full aspect-video block" />
+          </div>
         </div>
       </section>
 
