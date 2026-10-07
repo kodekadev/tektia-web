@@ -358,12 +358,17 @@ td.code{font-family:var(--mono);color:var(--muted);font-size:12px}
     </section>
 
     <section id="v-camp" hidden>
-      <div class="top"><div><h1>Campañas</h1><div class="crumb"><span class="coN"></span> / Campañas · WhatsApp y correo a tu base de clientes</div></div>
+      <div class="top"><div><h1>Campañas</h1><div class="crumb"><span class="coN"></span> / Campañas · correo a tu base de clientes, con envío programado</div></div>
         <button class="btn p" type="button" id="newCamp">＋ Nueva campaña</button></div>
       <div class="camps" id="camps"></div>
-      <div class="card" style="margin-top:16px"><h3>Mensaje de la campaña «Recordatorio mantención anual»</h3>
-        <div class="tpl"><div class="bub in" style="max-width:100%">Hola {{nombre}} 👋 Te escribimos de <b class="coN"></b>. Tu {{equipo}} cumple un año desde su última mantención preventiva. ¿Te agendamos una visita esta semana? Responde <b>SÍ</b> y te ofrecemos horarios.<span class="tm">09:00</span></div></div>
-        <p class="crumb" style="margin:10px 0 0">Las respuestas las toma el agente IA, que agenda y crea el lead solo.</p>
+      <div class="card" style="margin-top:16px"><h3>Correo de la campaña «Recordatorio mantención anual»</h3>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px;max-width:480px">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Asunto</div>
+          <div style="font-weight:700;margin-bottom:14px">¿Siguen gestionando las mantenciones en planillas?</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Cuerpo</div>
+          <div style="font-size:14px;line-height:1.5;color:#3b3a52">Hola, equipo de <b class="coN"></b>:<br><br>Tu mantención preventiva vence este mes. ¿Coordinamos la visita técnica?</div>
+        </div>
+        <p class="crumb" style="margin:10px 0 0">Se envía con goteo en horario hábil (9:00–18:00), respetando el tope diario que definas — no todo de golpe.</p>
       </div>
     </section>
 
@@ -452,7 +457,7 @@ const MODS=[
  {id:"cal",n:"Calendario",sec:"OPERACIONES",on:1,d:"Visitas y mantenciones agendadas del equipo técnico."},
  {id:"docs",n:"Protocolos y documentación",sec:"OPERACIONES",on:0,d:"Informes técnicos y protocolos por cliente y equipo."},
  {id:"wsp",n:"Agente WhatsApp IA",sec:"CRECIMIENTO",on:1,d:"Responde 24/7, agenda visitas y crea leads solo."},
- {id:"camp",n:"Campañas",sec:"CRECIMIENTO",on:1,d:"Mensajes masivos por WhatsApp y correo a tu base."}];
+ {id:"camp",n:"Campañas",sec:"CRECIMIENTO",on:1,d:"Correo masivo a tu base, programado en horario hábil."}];
 const SYS=[{id:"mods",n:"Módulos"},{id:"brand",n:"Mi marca"}];
 const PAL=[["#2f9580","#1b1f45","Verde"],["#2563c9","#14213d","Azul"],["#b0304a","#2a1620","Burdeo"],["#d0621b","#22262e","Naranjo"],["#6d3fc9","#1e1838","Morado"],["#178a9e","#13272c","Petróleo"]];
 const CAT=[
@@ -476,9 +481,9 @@ const EVENTS=[
  {d:4,h:"09:30",t:"Entrega de informe técnico",c:"Centro Médico Andes",k:""}];
 const DAYS=[["Lun",12],["Mar",13],["Mié",14],["Jue",15],["Vie",16]];
 const CAMPS=[
- {n:"Recordatorio mantención anual",ch:"WhatsApp",st:"live",env:312,lei:268,res:41,ag:9},
- {n:"Calibraciones de octubre",ch:"Correo",st:"live",env:540,lei:221,res:18,ag:4},
- {n:"Reactivación clientes 2025",ch:"WhatsApp",st:"ok",env:186,lei:150,res:27,ag:6}];
+ {n:"Recordatorio mantención anual",ch:"Correo",st:"live",env:312,ent:298,ab:184,reb:3},
+ {n:"Calibraciones de octubre",ch:"Correo",st:"live",env:540,ent:521,ab:233,reb:6},
+ {n:"Reactivación clientes 2025",ch:"Correo",st:"ok",env:186,ent:179,ab:92,reb:2}];
 
 let S={co:"Servitec Andes",pal:0,logo:null,on:Object.fromEntries(MODS.map(m=>[m.id,m.core||m.on?1:0])),view:"brand",step:0};
 let LEADS=BASE_LEADS.map(l=>({...l,s:"no"})), lead=LEADS[0], items=[], emitted=0, played=0, playing=0, extraCamp=0;
@@ -581,12 +586,12 @@ function renderCal(){
   $("#week").innerHTML=DAYS.map(([n,num],i)=>`<div class="day"><h4>${n}<b>${num}</b></h4>${ev.filter(e=>e.d===i).sort((a,b)=>a.h.localeCompare(b.h)).map(e=>`<div class="ev ${e.k}"><small>${e.h}</small><b>${e.t}</b><small>${e.c}</small></div>`).join("")||'<div class="crumb" style="font-size:13px">Sin visitas</div>'}</div>`).join("");
 }
 function renderCamps(){
-  const list=[...CAMPS]; if(extraCamp) list.unshift({n:"Nueva campaña (borrador)",ch:"WhatsApp",st:"draft",env:0,lei:0,res:0,ag:0});
+  const list=[...CAMPS]; if(extraCamp) list.unshift({n:"Nueva campaña (borrador)",ch:"Correo",st:"draft",env:0,ent:0,ab:0,reb:0});
   $("#camps").innerHTML=list.map(c=>`<div class="card camp"><div class="nm"><b>${c.n}</b><small>${c.ch} · </small><span class="pill ${c.st==="live"?"live":c.st==="draft"?"no":"ok"}">${c.st==="live"?"En curso":c.st==="draft"?"Borrador":"Terminada"}</span></div>
    <div class="stat"><small>Enviados</small><b>${c.env}</b></div>
-   <div class="stat"><small>Leídos</small><b>${c.lei}</b><div class="meter"><i style="width:${c.env?c.lei/c.env*100:0}%"></i></div></div>
-   <div class="stat"><small>Respuestas</small><b>${c.res}</b></div>
-   <div class="stat"><small>Agendas</small><b>${c.ag}</b></div></div>`).join("");
+   <div class="stat"><small>Entregados</small><b>${c.ent}</b><div class="meter"><i style="width:${c.env?c.ent/c.env*100:0}%"></i></div></div>
+   <div class="stat"><small>Abiertos</small><b>${c.ab}</b></div>
+   <div class="stat"><small>Rebotes</small><b>${c.reb}</b></div></div>`).join("");
 }
 function openQuote(id){
   lead=LEADS.find(l=>l.id===id); items=lead.pre.map(c=>CAT.find(x=>x.c===c));
