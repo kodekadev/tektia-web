@@ -226,9 +226,9 @@ td.code{font-family:var(--mono);color:var(--muted);font-size:12px}
 @media (max-width:760px){
   .app{grid-template-columns:1fr}
   .side{flex-direction:row;overflow-x:auto;padding:10px 12px;gap:6px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 52px);z-index:15}
-  .brand{padding:0 8px 0 0;border:0;margin:0}
+  .brand{padding:0 8px 0 0;border:0;margin:0;max-width:140px;overflow:hidden;flex-shrink:0}
   .brand small,.sec,.side .user{display:none}
-  .brand b{white-space:nowrap}
+  .brand b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
   .nav{width:auto;white-space:nowrap;padding:8px 12px}
   .kpi .v{font-size:24px}
   .chat{height:380px}
