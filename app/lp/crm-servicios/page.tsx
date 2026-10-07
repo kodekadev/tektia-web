@@ -215,6 +215,10 @@ export default function LandingCRM() {
                 {loading ? "Enviando..." : "Quiero ver el sistema en vivo →"}
               </button>
               <p className="text-center text-xs text-[#9CA3AF]">Sin spam. Te contactamos para coordinar la demo.</p>
+              <a href="https://cal.com/tektia/demo-crm-tektia" target="_blank" rel="noopener noreferrer"
+                className="text-center text-xs font-semibold text-[#F97316] hover:underline -mt-1">
+                ¿Prefieres elegir tú el horario? Agenda directo →
+              </a>
             </form>
           </motion.div>
         </div>
