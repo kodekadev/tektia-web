@@ -11,12 +11,20 @@ const metrics = [
 ];
 
 function Counter({ target, suffix }: { target: number; suffix: string }) {
-  const [count, setCount] = useState(0);
+  // Parte con el valor final para que Google y quien no tenga JavaScript vean la cifra real.
+  const [count, setCount] = useState(target);
   const ref = useRef<HTMLSpanElement>(null);
+  const started = useRef(false);
   const inView = useInView(ref, { once: true });
 
   useEffect(() => {
-    if (!inView) return;
+    // Ya en el navegador: vuelve a 0 mientras la sección está fuera de pantalla, para animar al llegar.
+    if (!started.current) setCount(0);
+  }, []);
+
+  useEffect(() => {
+    if (!inView || started.current) return;
+    started.current = true;
     let start = 0;
     const duration = 1400;
     const step = Math.ceil(target / (duration / 16));
