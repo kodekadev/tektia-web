@@ -70,7 +70,7 @@ const faqs = [
     a: "Lo evaluamos sin costo. Muchas funcionalidades extra se pueden agregar como parte del proyecto o en una segunda etapa.",
   },
   {
-    q: "¿El precio mensual incluye soporte?",
+    q: "¿La mensualidad incluye soporte?",
     a: "Sí. Soporte por WhatsApp, actualizaciones del sistema y hosting incluidos en la mensualidad.",
   },
 ];
@@ -147,7 +147,7 @@ export default function LandingCRM() {
               {[
                 "Catálogo de servicios 100% personalizable",
                 "Cotizaciones en PDF listas para enviar",
-                "Desde $490.000 CLP + $99.000/mes",
+                "Listo en 5 a 10 días hábiles",
               ].map((text) => (
                 <li key={text} className="flex items-center gap-2.5 text-sm text-[#374151]">
                   <CheckCircle2 size={16} className="text-[#F97316] shrink-0" />
@@ -288,7 +288,7 @@ export default function LandingCRM() {
       {/* Pricing */}
       <section className="py-16 px-6 bg-white border-t border-[#E8E5E0]">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="text-[#F97316] text-xs font-bold uppercase tracking-widest mb-2">Precio</p>
+          <p className="text-[#F97316] text-xs font-bold uppercase tracking-widest mb-2">Qué incluye</p>
           <h2 className="text-3xl sm:text-4xl font-black text-[#111111] mb-10" style={{ fontFamily: "var(--font-syne)" }}>
             Simple y sin sorpresas
           </h2>
@@ -297,8 +297,7 @@ export default function LandingCRM() {
             <div className="flex flex-col gap-4 p-8 rounded-2xl border border-[#E8E5E0] bg-[#F9F8F6] text-left">
               <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-widest">Pago único</p>
               <div>
-                <span className="text-4xl font-black text-[#111111]" style={{ fontFamily: "var(--font-syne)" }}>$490.000</span>
-                <span className="text-[#6B7280] text-sm ml-1">CLP</span>
+                <span className="text-3xl font-black text-[#111111]" style={{ fontFamily: "var(--font-syne)" }}>Implementación</span>
               </div>
               <ul className="flex flex-col gap-2.5 text-sm text-[#4B5563]">
                 {["Configuración completa del sistema", "Carga de tu catálogo de servicios", "Capacitación en vivo (1 sesión)", "Integración con tu sitio web"].map(i => (
@@ -311,8 +310,7 @@ export default function LandingCRM() {
               <div className="absolute top-4 right-4 bg-[#F97316] text-white text-xs font-bold px-2.5 py-1 rounded-full">Mensual</div>
               <p className="text-xs font-bold text-[#F97316] uppercase tracking-widest">Suscripción</p>
               <div>
-                <span className="text-4xl font-black text-white" style={{ fontFamily: "var(--font-syne)" }}>$99.000</span>
-                <span className="text-[#9CA3AF] text-sm ml-1">CLP/mes</span>
+                <span className="text-3xl font-black text-white" style={{ fontFamily: "var(--font-syne)" }}>Plan mensual</span>
               </div>
               <ul className="flex flex-col gap-2.5 text-sm text-[#9CA3AF]">
                 {["Hosting y base de datos incluidos", "Soporte por WhatsApp", "Actualizaciones del sistema", "Sin límite de usuarios"].map(i => (
@@ -321,6 +319,9 @@ export default function LandingCRM() {
               </ul>
             </div>
           </div>
+          <p className="text-[#6B7280] text-sm mt-8">
+            Te enviamos una cotización a la medida de tu empresa en menos de 24 horas, sin compromiso.
+          </p>
         </div>
       </section>
 
